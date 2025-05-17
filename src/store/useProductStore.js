@@ -107,7 +107,7 @@ export const useProductStore = create((set) => ({
       set({category:res?.data?.data,isLoadingCategories:false});
     } catch (error) {
       console.log(`Error in Fetching categories details:${error}`);
-      toast.error(error?.response?.data?.message ||"Food Categories retrieval Failed");
+      
       set({isLoadingCategories:false})
     }
   },

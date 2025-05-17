@@ -27,7 +27,7 @@ export const useBusinessStore=create(
             } catch (error) {
                 set({isBusinessDataLoading:false})
                 console.log(`Error in getting business details:${error}`);
-                toast.error("Fetching Business Details")
+              
             }
            }
         })
