@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Home, ShoppingBasket,TagsIcon, TrendingUp, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-
+import { useAuthStore } from '../../store/useAuthStore';
 const Navbar = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-
+   const {  authUser}=useAuthStore()
   // Check if current route is active
   const isActive = (path) => location.pathname === path;
 
@@ -30,7 +30,9 @@ const Navbar = () => {
   }, [location]);
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md' : 'bg-white shadow-sm'}`}>
+    <>
+    {authUser? <>
+       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md' : 'bg-white shadow-sm'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
@@ -170,6 +172,8 @@ const Navbar = () => {
         </div>
       </div>
     </nav>
+    </>:null}
+    </>
   );
 };
 
