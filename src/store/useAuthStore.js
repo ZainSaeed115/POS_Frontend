@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from 'zustand/middleware';
 import { axiosInstance } from "../lib/axios";
 import { toast } from "react-toastify";
+import { Navigate } from "react-router-dom";
 
 export const useAuthStore = create(
   persist(
@@ -171,6 +172,7 @@ export const useAuthStore = create(
             registrationStep: 0
           });
           toast.success("Logged out successfully");
+           Navigate('/login')
           return true;
         } catch (error) {
           console.error(`Error logging out: ${error}`);
