@@ -25,7 +25,7 @@ export const useAuthStore = create(
           const res = await axiosInstance.post('/business/register_owner', data);
           if (res?.data?.success) {
             toast.success(res.data.message || 'Owner registered successfully');
-            set({ 
+            set({
               authUser: res.data.owner,
               registrationInProgress: true,
               registrationStep: 1, // Move to verification step
@@ -42,23 +42,38 @@ export const useAuthStore = create(
       },
 
       // Verify email with token
+      // In your useAuthStore
       verifyEmailWithVerificationToken: async (data) => {
         set({ isVerifying: true });
         try {
-          const res = await axiosInstance.post("/business/verify_email", data);
+          const res = await axiosInstance.post("/business/verify_email", data, {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
           if (res?.data?.success) {
             toast.success(res.data.message || "Email verified successfully");
-            set({ 
-              registrationStep: 2, // Move to business info step
+            set({
+              registrationStep: 2,
               isVerifying: false,
-              authUser: { ...get().authUser, isVerified: true }
+              authUser: {
+                ...get().authUser,
+                isVerified: true,
+                verificationToken: undefined
+              }
             });
             return true;
           }
         } catch (error) {
           set({ isVerifying: false });
-          console.error("Error in Email Verification:", error);
-          toast.error(error?.response?.data?.error || "Email verification failed");
+          console.error("Email verification error:", error.response?.data || error);
+
+          const errorMessage = error.response?.data?.message ||
+            error.response?.data?.error ||
+            "Email verification failed";
+
+          toast.error(errorMessage);
           return false;
         }
       },
@@ -72,7 +87,7 @@ export const useAuthStore = create(
           if (res?.data?.success) {
             toast.success(res.data.message || "Business registered successfully");
             set({
-            
+
               businessInformation: res.data.business,
               registrationInProgress: false,
               registrationStep: 0,
@@ -90,8 +105,8 @@ export const useAuthStore = create(
 
       // Login user
       loginUser: async (data) => {
-        console.log("Login Credentials:",data)
-      
+        console.log("Login Credentials:", data)
+
         set({ isLogging: true });
         try {
           const res = await axiosInstance.post("/business/login", data);
@@ -120,24 +135,24 @@ export const useAuthStore = create(
         try {
           const res = await axiosInstance.get('/business/check_auth');
           if (res?.data?.success) {
-            set({ 
-              authUser: res?.data?.user, 
+            set({
+              authUser: res?.data?.user,
               businessInformation: res?.data?.business || [],
               isCheckingAuth: false
             });
             return true;
           } else {
-            set({ 
-              authUser: null, 
+            set({
+              authUser: null,
               isCheckingAuth: false,
               businessInformation: []
-            }); 
+            });
             return false;
           }
         } catch (error) {
           console.error(`Error checking auth: ${error}`);
-          set({ 
-            authUser: null, 
+          set({
+            authUser: null,
             isCheckingAuth: false,
             businessInformation: []
           });
@@ -167,12 +182,12 @@ export const useAuthStore = create(
       // Validate registration progress
       validateRegistrationProgress: () => {
         const { authUser, registrationStep } = get();
-        
+
         if (!authUser) {
           set({ registrationStep: 0 });
           return;
         }
-        
+
         if (authUser && !authUser.isVerified && registrationStep < 1) {
           set({ registrationStep: 1 }); // Move to verification if registered but not verified
         }
