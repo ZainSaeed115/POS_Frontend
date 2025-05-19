@@ -164,8 +164,10 @@ export const useAuthStore = create(
       // Logout user
       logoutUser: async () => {
         try {
-          await axiosInstance.post('/business/logout');
-          set({
+        const  res=await axiosInstance.post('/business/logout');
+          
+         if(res?.data?.success){
+           set({
             authUser: null,
             businessInformation: [],
             registrationInProgress: false,
@@ -173,7 +175,7 @@ export const useAuthStore = create(
           });
           toast.success("Logged out successfully");
            Navigate('/login')
-          return true;
+         }
         } catch (error) {
           console.error(`Error logging out: ${error}`);
           toast.error("Logout failed. Please try again");
