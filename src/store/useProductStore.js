@@ -25,7 +25,11 @@ export const useProductStore = create((set) => ({
   createNewProduct:async (productData)=>{
     set({isAddingNewProduct:true})
    try {
-    const res= await axiosInstance.post('/product/create',productData);
+    const res= await axiosInstance.post('/product/create',productData,{
+        headers: {
+          'Content-Type': 'multipart/form-data', // Force axios to send as multipart
+        },
+      });
     if(res?.data)
       toast.success("New Product added successfully");
     await useProductStore.getState().fetchProducts();
