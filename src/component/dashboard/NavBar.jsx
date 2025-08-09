@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Home, ShoppingBasket, TagsIcon, TrendingUp, Menu, X, LogOut } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate=useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { authUser,  logoutUser } = useAuthStore(); // Assuming you have a logout function in your store
@@ -31,8 +32,14 @@ const Navbar = () => {
     setMobileMenuOpen(false);
   }, [location]);
 
-  const handleLogout = () => {
-    logoutUser() // Call your logout function
+   const handleLogout = async () => {
+    const result = await logoutUser();
+    if (result.success) {
+      toast.success(result.message);
+      navigate('/login'); 
+    } else {
+      toast.error(result.message);
+    }
   };
 
   return (

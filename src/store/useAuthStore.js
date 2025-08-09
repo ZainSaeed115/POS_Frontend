@@ -162,27 +162,40 @@ export const useAuthStore = create(
       },
 
       // Logout user
+
       logoutUser: async () => {
         try {
-        const  res=await axiosInstance.post('/business/logout');
-          
-         if(res?.data?.success){
-           set({
-            authUser: null,
-            businessInformation: [],
-            registrationInProgress: false,
-            registrationStep: 0
+          const res = await axiosInstance.post('/business/logout', {}, {
+            withCredentials: true
           });
-          toast.success("Logged out successfully");
-           Navigate('/login')
-         }
+
+          if (res?.data?.success) {
+            // Clear all relevant state
+            set({
+              authUser: null,
+              businessInformation: [],
+              registrationInProgress: false,
+              registrationStep: 0,
+              isLogging: false
+            });
+
+            // Clear persisted state
+            localStorage.removeItem('auth-storage');
+
+            return {
+              success: true,
+              message: res.data.message || "Logged out successfully"
+            };
+          }
+          return { success: false, message: "Logout failed" };
         } catch (error) {
-          console.error(`Error logging out: ${error}`);
-          toast.error("Logout failed. Please try again");
-          return false;
+          console.error('Logout error:', error.response?.data || error);
+          return {
+            success: false,
+            message: error.response?.data?.message || "Logout failed. Please try again"
+          };
         }
       },
-
       // Validate registration progress
       validateRegistrationProgress: () => {
         const { authUser, registrationStep } = get();
