@@ -4,6 +4,7 @@ import { axiosInstance } from "../lib/axios";
 import { toast } from "react-toastify";
 import { Navigate } from "react-router-dom";
 
+
 export const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -18,8 +19,10 @@ export const useAuthStore = create(
       isLoadingOwnerDetails: false,
       isLoadingBusinessInformationDetails: false,
       isLogging: false,
+      isForgetting:false,
+      userId:false,
 
-      // Register business owner
+      
       registerBusinessOwner: async (data) => {
         set({ isRegistering: true });
         try {
@@ -42,8 +45,7 @@ export const useAuthStore = create(
         }
       },
 
-      // Verify email with token
-      // In your useAuthStore
+      
       verifyEmailWithVerificationToken: async (data) => {
         set({ isVerifying: true });
         try {
@@ -79,7 +81,7 @@ export const useAuthStore = create(
         }
       },
 
-      // Register business
+     
       registerBusiness: async (data) => {
         set({ isCreatingBusiness: true });
         try {
@@ -104,7 +106,7 @@ export const useAuthStore = create(
         }
       },
 
-      // Login user
+     
       loginUser: async (data) => {
         console.log("Login Credentials:", data)
 
@@ -130,7 +132,7 @@ export const useAuthStore = create(
         }
       },
 
-      // Check authentication status
+    
       checkAuth: async () => {
         set({ isCheckingAuth: true });
         try {
@@ -161,7 +163,7 @@ export const useAuthStore = create(
         }
       },
 
-      // Logout user
+   
 
       logoutUser: async () => {
         try {
@@ -196,7 +198,7 @@ export const useAuthStore = create(
           };
         }
       },
-      // Validate registration progress
+    
       validateRegistrationProgress: () => {
         const { authUser, registrationStep } = get();
 
@@ -211,7 +213,51 @@ export const useAuthStore = create(
         else if (authUser?.isVerified && registrationStep < 2) {
           set({ registrationStep: 2 }); // Move to business info if verified
         }
+      },
+
+      forgotPassword:async(email)=>{
+        set({isForgetting:true});
+        try {
+          const res= await axiosInstance.post('/business/forgot_password',email);
+          if(res?.data?.success){
+            toast.success(res?.data?.message);
+             set({isForgetting:false});
+          }
+        } catch (error) {
+           set({isForgetting:false});
+           toast.error(error?.response?.data?.message);
+           console.error(`Error in forgotPassword: ${error}`);
+
+        }
+      },
+      verifyToken:async(code)=>{
+        set({isVerifying:true});
+          try {
+            const res= await axiosInstance.post('/business/verify_token',{token:code});
+            if(res?.data?.success){
+               toast.success(res?.data?.message);
+                set({isVerifying:false,userId:res?.data?.ownerId});
+            }
+            return res;
+          } catch (error) {
+             set({isVerifying:false});
+            toast.error(error?.response?.data?.message);
+           console.error(`Error in verifyToken: ${error}`);
+          }
+      },
+      resetPassword:async(data)=>{
+        try {
+          const res= await axiosInstance.post('/business/reset_password',data);
+          if(res?.data?.success){
+            toast.success(res?.data?.message||"Password Reset Successfully");
+          }
+          return res;
+        } catch (error) {
+           toast.error(error?.response?.data?.message);
+           console.error(`Error in verifyToken: ${error}`);
+        }
       }
+
     }),
     {
       name: 'auth-storage',
