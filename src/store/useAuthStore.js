@@ -172,7 +172,7 @@ export const useAuthStore = create(
           });
 
           if (res?.data?.success) {
-            // Clear all relevant state
+            
             set({
               authUser: null,
               businessInformation: [],
@@ -181,9 +181,9 @@ export const useAuthStore = create(
               isLogging: false
             });
 
-            // Clear persisted state
+          
             localStorage.removeItem('auth-storage');
-
+            
             return {
               success: true,
               message: res.data.message || "Logged out successfully"

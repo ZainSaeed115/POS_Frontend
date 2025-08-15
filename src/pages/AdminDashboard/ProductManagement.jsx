@@ -30,7 +30,7 @@ const ProductManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-  console.log("productId",selectedProductId)
+ 
   useEffect(() => {
     fetchProducts(currentPage, pageSize, selectedCategory, searchQuery);
     fetchProductCategories();

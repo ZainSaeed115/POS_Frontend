@@ -8,7 +8,10 @@ import AddProductModal from "../modals/AddProductModal";
 import { Loader, X, Barcode } from "lucide-react";
 import BarCodeScanner from "../component/BarCodeScanner";
 import { toast } from "react-toastify";
+import { Card, Col, Row,Input,Select,Button } from "antd";
+import { ClearOutlined, FilterOutlined, SearchOutlined } from "@ant-design/icons";
 
+const { Search } = Input;
 const Product = () => {
   const { 
     isLoadingProducts, 
@@ -16,7 +19,8 @@ const Product = () => {
     products, 
     currentPage: storeCurrentPage,
     totalPages: storeTotalPages,
-    searchProducts 
+    searchProducts,
+    category, 
   } = useProductStore();
   
   const { items, addToOrder, removeFromOrder, createOrder, isPlacingOrder } = useOrderStore();
@@ -33,16 +37,14 @@ const Product = () => {
     fetchProducts(currentPage, pageSize, selectedCategory, searchQuery);
   }, [currentPage, pageSize, selectedCategory, searchQuery, fetchProducts]);
 
+ 
   useEffect(() => {
-    const delaySearch = setTimeout(() => {
-      if (searchQuery.trim() === "") {
-        fetchProducts(currentPage, pageSize, selectedCategory);
-      } else {
-        searchProducts(searchQuery);
-      }
-    }, 300);
-    return () => clearTimeout(delaySearch);
-  }, [searchQuery, fetchProducts, searchProducts, currentPage, pageSize, selectedCategory]);
+    const delayDebounceFn = setTimeout(() => {
+      fetchProducts(1, pageSize, selectedCategory, searchQuery);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, selectedCategory]);
 
   useEffect(() => {
     if (storeCurrentPage && storeTotalPages) {
@@ -74,6 +76,12 @@ const Product = () => {
     }
   };
 
+   const handleClearFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory("");
+    setCurrentPage(1);
+    fetchProducts(1, pageSize);
+  };
   return (
     <div className="min-h-screen bg-gray-50 p-2 sm:p-4 pt-16 sm:pt-20">
       {/* Header Section */}
@@ -108,7 +116,7 @@ const Product = () => {
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Products</h2>
-              <div className="flex gap-2 w-full sm:w-1/2">
+              {/* <div className="flex gap-2 w-full sm:w-1/2">
                 <div className="relative flex-grow">
                   <input
                     type="text"
@@ -126,7 +134,49 @@ const Product = () => {
                     </button>
                   )}
                 </div>
-              </div>
+              </div> */}
+
+               <Card className="mb-6 shadow-sm">
+                        <Row gutter={[16, 16]} align="middle">
+                          <Col xs={24} sm={12} md={8}>
+                            <Search
+                              placeholder="Search by name or barcode"
+                              prefix={<SearchOutlined/>}
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              allowClear
+                              enterButton
+                            />
+                          </Col>
+                          
+                          <Col xs={24} sm={12} md={8}>
+                            <Select
+                              placeholder="Filter by category"
+                              className="w-full"
+                              value={selectedCategory || undefined}
+                              onChange={(value) => setSelectedCategory(value)}
+                              allowClear
+                              suffixIcon={<FilterOutlined />}
+                            >
+                              {category?.map((cat) => (
+                                <Select.Option key={cat._id} value={cat._id}>
+                                  {cat.name}
+                                </Select.Option>
+                              ))}
+                            </Select>
+                          </Col>
+                          
+                          <Col xs={24} md={8}>
+                            <Button 
+                              onClick={handleClearFilters}
+                              icon={<ClearOutlined />}
+                              disabled={!searchQuery && !selectedCategory}
+                            >
+                              Clear Filters
+                            </Button>
+                          </Col>
+                        </Row>
+                      </Card>
             </div>
 
             <div className="h-[300px] sm:h-[400px] md:h-[500px] overflow-y-auto pr-2">
