@@ -3,6 +3,7 @@ import React from 'react';
 import { useProductStore } from '../store/useProductStore';
 
 const DeleteProduct = ({ isOpen, setIsOpen, productId }) => {
+  console.log("HandleDelete:",productId)
   const { isDeleteingProduct, deleteProduct } = useProductStore();
 
   const handleConfirmDelete = async () => {

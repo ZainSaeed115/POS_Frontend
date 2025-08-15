@@ -42,9 +42,7 @@ const AddProductModal = ({ isOpen, setIsOpen }) => {
     // Handle image upload separately
     if (values.image && values.image[0]?.originFileObj) {
       formData.append('image', values.image[0].originFileObj);
-    } else {
-      throw new Error('Please select an image');
-    }
+    } 
 
     // Debugging: Log FormData contents
     for (let [key, value] of formData.entries()) {
@@ -89,20 +87,20 @@ const AddProductModal = ({ isOpen, setIsOpen }) => {
               name="image"
               valuePropName="fileList"
               getValueFromEvent={(e) => {
-                // Return only the fileList when it exists
+               
                 if (Array.isArray(e)) {
                   return e;
                 }
                 return e?.fileList || [];
               }}
-              rules={[
-                {
-                  required: true,
-                  message: 'Please upload an image',
-                  validator: (_, value) =>
-                    value && value[0]?.originFileObj ? Promise.resolve() : Promise.reject()
-                }
-              ]}
+              // rules={[
+              //   {
+              //     required: true,
+              //     message: 'Please upload an image',
+              //     validator: (_, value) =>
+              //       value && value[0]?.originFileObj ? Promise.resolve() : Promise.reject()
+              //   }
+              // ]}
             >
               <Upload
                 listType="picture-card"
@@ -187,7 +185,7 @@ const AddProductModal = ({ isOpen, setIsOpen }) => {
                 type="number"
                 placeholder="Enter Stock Quantity"
                 size="large"
-                min={0}
+                min={1}
                 step={1}
                 className="text-base sm:text-lg h-10 sm:h-12"
               />
@@ -225,7 +223,7 @@ const AddProductModal = ({ isOpen, setIsOpen }) => {
           </div>
         </div>
 
-        <Form.Item
+        {/* <Form.Item
           label={<span className="text-base sm:text-lg font-medium">Description</span>}
           name="description"
           rules={[{ required: true, message: 'Please enter description' }]}
@@ -237,7 +235,7 @@ const AddProductModal = ({ isOpen, setIsOpen }) => {
             maxLength={500}
             className="text-base sm:text-lg"
           />
-        </Form.Item>
+        </Form.Item> */}
 
         <Form.Item className="flex justify-end gap-3 sm:gap-4 mt-4 sm:mt-6">
           <Button

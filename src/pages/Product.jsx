@@ -10,7 +10,15 @@ import BarCodeScanner from "../component/BarCodeScanner";
 import { toast } from "react-toastify";
 
 const Product = () => {
-  const { isLoadingProducts, fetchProducts, products, searchProducts } = useProductStore();
+  const { 
+    isLoadingProducts, 
+    fetchProducts, 
+    products, 
+    currentPage: storeCurrentPage,
+    totalPages: storeTotalPages,
+    searchProducts 
+  } = useProductStore();
+  
   const { items, addToOrder, removeFromOrder, createOrder, isPlacingOrder } = useOrderStore();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -18,32 +26,34 @@ const Product = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showScanner, setShowScanner] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [pageSize, setPageSize] = useState(6);
 
   useEffect(() => {
-    fetchProducts(currentPage);
-  }, [currentPage, fetchProducts]);
+    fetchProducts(currentPage, pageSize, selectedCategory, searchQuery);
+  }, [currentPage, pageSize, selectedCategory, searchQuery, fetchProducts]);
 
   useEffect(() => {
     const delaySearch = setTimeout(() => {
       if (searchQuery.trim() === "") {
-        fetchProducts();
+        fetchProducts(currentPage, pageSize, selectedCategory);
       } else {
         searchProducts(searchQuery);
       }
     }, 300);
     return () => clearTimeout(delaySearch);
-  }, [searchQuery, fetchProducts, searchProducts]);
+  }, [searchQuery, fetchProducts, searchProducts, currentPage, pageSize, selectedCategory]);
 
   useEffect(() => {
-    if (products?.currentPage && products?.totalPages) {
-      setCurrentPage(products.currentPage);
-      setTotalPages(products.totalPages);
+    if (storeCurrentPage && storeTotalPages) {
+      setCurrentPage(storeCurrentPage);
+      setTotalPages(storeTotalPages);
     }
-  }, [products]);
+  }, [storeCurrentPage, storeTotalPages]);
 
   const handleClearSearch = () => {
     setSearchQuery("");
-    fetchProducts();
+    fetchProducts(currentPage, pageSize, selectedCategory);
   };
 
   const totalSum = items.reduce((sum, product) => sum + product.salesPrice * product.quantity, 0);
@@ -124,9 +134,9 @@ const Product = () => {
                 <div className="flex justify-center items-center h-full">
                   <Loader size={32} className="animate-spin text-blue-500" />
                 </div>
-              ) : Array.isArray(products?.products) && products.products.length > 0 ? (
+              ) : Array.isArray(products) && products.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-3 sm:gap-4">
-                  {products.products.map((item) => (
+                  {products.map((item) => (
                     <ProductCard 
                       key={item._id} 
                       product={item} 

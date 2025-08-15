@@ -1,132 +1,150 @@
 import React from 'react';
-import { Badge, Button, Card, Popconfirm, Tag, Tooltip, Divider, Statistic, Row, Col } from 'antd';
+import {
+  Badge,
+  Button,
+  Card,
+  Popconfirm,
+  Tag,
+  Tooltip,
+  Divider,
+  Statistic,
+  Row,
+  Col,
+} from 'antd';
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 
 const AdminProductCard = ({ product, onUpdate, onDelete }) => {
-  const profit = (product.salesPrice - product.costPrice).toFixed(2);
-  const profitPercentage = ((profit / product.costPrice) * 100).toFixed(1);
+  const costPrice = product.costPrice || 0;
+  const profit = (product.salesPrice - costPrice).toFixed(2);
+  const profitPercentage =
+    costPrice > 0 ? ((profit / costPrice) * 100).toFixed(1) : '0';
 
   return (
-    <Badge.Ribbon 
-      text={product?.category?.name || 'Uncategorized'} 
+    <Badge.Ribbon
+      text={product?.category?.name || 'Uncategorized'}
       color={product?.category?.color || 'gray'}
-      className="text-xs sm:text-sm md:text-base"
     >
       <Card
         hoverable
         cover={
-          <div className="h-40 sm:h-48 md:h-56 overflow-hidden flex items-center justify-center bg-gray-100">
-            <img
-              alt={product.name}
-              src={product.image?.url || 'https://via.placeholder.com/300'}
-              className="object-contain h-full w-full p-2 sm:p-3 md:p-4"
-            />
-          </div>
+          product.image?.url ? (
+            <div className="h-44 sm:h-52 md:h-60 overflow-hidden flex items-center justify-center bg-gray-50">
+              <img
+                alt={product.name}
+                src={product.image.url}
+                className="object-contain h-full w-full p-3"
+              />
+            </div>
+          ) : null
         }
+
         actions={[
-          <Tooltip title="Update Product">
-            <Button 
-              type="text" 
-              icon={<EditOutlined className="text-sm sm:text-base md:text-lg" />} 
+          <Tooltip title="Update Product" key="update">
+            <Button
+              type="text"
+              icon={<EditOutlined className="text-lg" />}
               onClick={() => onUpdate(product._id)}
-              className="text-blue-500 hover:text-blue-700 text-xs sm:text-sm md:text-base"
+              className="text-blue-500 hover:text-blue-700"
             />
           </Tooltip>,
-          <Tooltip title="Preview Product">
-            <Button 
-              type="text" 
-              icon={<EyeOutlined className="text-sm sm:text-base md:text-lg" />}
-              className="text-green-500 hover:text-green-700 text-xs sm:text-sm md:text-base"
+          <Tooltip title="Preview Product" key="preview">
+            <Button
+              type="text"
+              icon={<EyeOutlined className="text-lg" />}
+              className="text-green-500 hover:text-green-700"
             />
           </Tooltip>,
           <Popconfirm
-            title={<span className="text-sm sm:text-base md:text-lg">Delete this product?</span>}
-            description={<span className="text-xs sm:text-sm md:text-base">This action cannot be undone.</span>}
+            title="Delete this product?"
+            description="This action cannot be undone."
             onConfirm={() => onDelete(product._id)}
-            okText={<span className="text-xs sm:text-sm md:text-base">Yes</span>}
-            cancelText={<span className="text-xs sm:text-sm md:text-base">No</span>}
-            overlayClassName="text-sm sm:text-base"
+            okText="Yes"
+            cancelText="No"
           >
-            <Tooltip title="Delete Product">
-              <Button 
-                type="text" 
-                danger 
-                icon={<DeleteOutlined className="text-sm sm:text-base md:text-lg" />}
-                className="text-xs sm:text-sm md:text-base"
+            <Tooltip title="Delete Product" key="delete">
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined className="text-lg" />}
               />
             </Tooltip>
-          </Popconfirm>
+          </Popconfirm>,
         ]}
-        className="h-full w-full"
-        style={{ maxWidth: '100%' }}
-        bodyStyle={{ padding: '12px' }}
+        bodyStyle={{ padding: '14px' }}
+        className="h-full"
       >
         <Card.Meta
           title={
             <div className="flex justify-between items-start gap-2">
-              <span className="text-base sm:text-lg md:text-xl font-semibold truncate" style={{ maxWidth: '60%' }}>
+              <span className="text-lg font-semibold truncate max-w-[60%]">
                 {product.name}
               </span>
-              <Tag color={product.stockQuantity > 0 ? 'green' : 'red'} className="text-xs sm:text-sm md:text-base">
+              <Tag
+                color={product.stockQuantity > 0 ? 'green' : 'red'}
+                className="text-xs sm:text-sm"
+              >
                 {product.stockQuantity} in stock
               </Tag>
             </div>
           }
           description={
             <div>
-              <p className="text-gray-600 text-xs sm:text-sm md:text-base line-clamp-2 mb-1 sm:mb-2">
-                {product.description || 'No description available'}
-              </p>
-              
-              <Divider className="my-1 sm:my-2 md:my-3" />
-              
-              <Row gutter={[8, 8]} className="mb-1 sm:mb-2 md:mb-3">
-                <Col xs={24} sm={8} md={8}>
-                  <Statistic 
-                    title={<span className="text-xs sm:text-sm">Cost Price</span>} 
-                    value={product.costPrice.toFixed(2)} 
-                    prefix="₹" 
-                    valueStyle={{ 
-                      fontSize: '12px sm:14px md:16px', 
+              {/* <p className="text-gray-600 text-sm line-clamp-2 mb-2">
+                {product?.description || 'No description available'}
+              </p> */}
+
+              <Divider className="my-2" />
+
+              <Row gutter={[8, 8]} className="mb-3">
+                <Col xs={24} sm={8}>
+                  <Statistic
+                    title="Cost Price"
+                    value={costPrice.toFixed(2)}
+                    prefix="₹"
+                    valueStyle={{
+                      fontSize: 14,
                       color: '#3f8600',
-                      fontWeight: 500 
+                      fontWeight: 500,
                     }}
                     className="text-center"
                   />
                 </Col>
-                <Col xs={24} sm={8} md={8}>
-                  <Statistic 
-                    title={<span className="text-xs sm:text-sm">Selling Price</span>} 
-                    value={product.salesPrice.toFixed(2)} 
-                    prefix="₹" 
-                    valueStyle={{ 
-                      fontSize: '12px sm:14px md:16px', 
+                <Col xs={24} sm={8}>
+                  <Statistic
+                    title="Selling Price"
+                    value={product.salesPrice.toFixed(2)}
+                    prefix="₹"
+                    valueStyle={{
+                      fontSize: 14,
                       color: '#096dd9',
-                      fontWeight: 500 
+                      fontWeight: 500,
                     }}
                     className="text-center"
                   />
                 </Col>
-                <Col xs={24} sm={8} md={8}>
-                  <Statistic 
-                    title={<span className="text-xs sm:text-sm">Profit</span>} 
-                    value={profit} 
-                    prefix="₹" 
-                    valueStyle={{ 
-                      fontSize: '12px sm:14px md:16px', 
+                <Col xs={24} sm={8}>
+                  <Statistic
+                    title="Profit"
+                    value={profit}
+                    prefix="₹"
+                    valueStyle={{
+                      fontSize: 14,
                       color: profit > 0 ? '#389e0d' : '#cf1322',
-                      fontWeight: 500 
+                      fontWeight: 500,
                     }}
                     className="text-center"
                   />
                 </Col>
               </Row>
-              
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
-                <Tag color={profit > 0 ? 'green' : 'red'} className="text-xs sm:text-sm md:text-base">
+
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <Tag
+                  color={profit > 0 ? 'green' : 'red'}
+                  className="text-xs sm:text-sm"
+                >
                   {profitPercentage}% Margin
                 </Tag>
-                <span className="text-xs sm:text-sm text-gray-400">
+                <span className="text-xs text-gray-400">
                   Updated: {new Date(product.updatedAt).toLocaleDateString()}
                 </span>
               </div>

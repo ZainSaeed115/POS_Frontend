@@ -62,34 +62,62 @@ export const useProductStore = create((set) => ({
         throw error;
     }
   },
+
   
   deleteProduct:async (productId)=>{
     set({isDeleteingProduct:true})
     try {
       const res= await axiosInstance.delete(`/product/delete/${productId}`);
       if(res?.data?.success){
-        toast.success("Food Deleted Successfully");
+        toast.success("Product Deleted Successfully");
         set({isDeleteingProduct:false})
         await useProductStore.getState().fetchProducts();
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message ||"Food Deletion Failed")
-      console.log(`Error in deleting Food:${error}`);
+      toast.error(error?.response?.data?.message ||"Failed to delete product")
+      console.log(`Error in deleting productt:${error}`);
     }
   },
   
   // fetching all products
-  fetchProducts: async (page=1) => {
-    set({ isLoadingProducts: true });
-    try {
-      const res = await axiosInstance.get(`/product/get?page=${page}`);
-      set({ products: res.data, isLoadingProducts: false });
-    } catch (error) {
-      console.log(`Error in fetching products: ${error}`);
-      set({ isLoadingProducts: false }); 
-    }
-  },
-  
+  // fetchProducts: async (page=1) => {
+  //   set({ isLoadingProducts: true });
+  //   try {
+  //     const res = await axiosInstance.get(`/product/get?page=${page}`);
+  //     set({ products: res.data, isLoadingProducts: false });
+  //   } catch (error) {
+  //     console.log(`Error in fetching products: ${error}`);
+  //     set({ isLoadingProducts: false }); 
+  //   }
+  // },
+
+fetchProducts: async (page = 1, limit = 6, category = "", search = "") => {
+  set({ isLoadingProducts: true });
+  try {
+    let url = `/product/get?page=${page}&limit=${limit}`;
+    if (category) url += `&category=${category}`;
+    if (search) url += `&search=${search}`;
+    
+    const res = await axiosInstance.get(url);
+    
+    
+    set({
+      productsResponse: res.data, 
+      products: res.data.products, 
+      currentPage: res.data.currentPage,
+      totalPages: res.data.totalPages,
+      totalProducts: res.data.totalProducts,
+      isLoadingProducts: false
+    });
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    set({ 
+      productsResponse: null,
+      products: [],
+      isLoadingProducts: false 
+    });
+  }
+},
   // fetching single product
   fetchProduct:async(productId)=>{
     set({isLoadingProduct:true});
@@ -97,12 +125,14 @@ export const useProductStore = create((set) => ({
       const res = await axiosInstance(`/product/${productId}`)
       if(res?.data?.success){
         set({specificProduct:res?.data?.product,isLoadingProduct:false});
+        console.log("productsss",res)
       }
     } catch (error) {
       console.log(`Error in fetching product: ${error}`);
       set({ isLoadingProducts: false }); 
     }
   },
+  
   
   fetchProductCategories:async ()=>{
     set({isLoadingCategories:true})
