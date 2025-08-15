@@ -69,20 +69,21 @@ const ProductManagement = () => {
   };
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
+    <div className="p-2 md:p-4 bg-gray-50 min-h-screen">
       <div className="max-w-8xl mx-auto">
         {/* Header Section */}
-        <Row justify="space-between" align="middle" className="mb-6">
-          <Col>
-            <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
-            <p className="text-gray-600">Manage your product inventory</p>
+        <Row gutter={[16, 16]} justify="space-between" align="middle" className="mb-4 md:mb-6">
+          <Col xs={24} sm={12}>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">Product Management</h1>
+            <p className="text-sm md:text-base text-gray-600">Manage your product inventory</p>
           </Col>
-          <Col>
+          <Col xs={24} sm={12} className="text-right">
             <Button 
               type="primary" 
               icon={<PlusOutlined />} 
               onClick={() => setIsModalOpen(true)}
               size="large"
+              className="w-full sm:w-auto"
             >
               Add Product
             </Button>
@@ -90,7 +91,7 @@ const ProductManagement = () => {
         </Row>
 
         {/* Filters Section */}
-        <Card className="mb-6 shadow-sm">
+        <Card className="mb-4 md:mb-6 shadow-sm">
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={12} md={8}>
               <Search
@@ -100,6 +101,7 @@ const ProductManagement = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 allowClear
                 enterButton
+                className="w-full"
               />
             </Col>
             
@@ -120,11 +122,12 @@ const ProductManagement = () => {
               </Select>
             </Col>
             
-            <Col xs={24} md={8}>
+            <Col xs={24} md={8} className="text-center md:text-left">
               <Button 
                 onClick={handleClearFilters}
                 icon={<ClearOutlined />}
                 disabled={!searchQuery && !selectedCategory}
+                className="w-full md:w-auto"
               >
                 Clear Filters
               </Button>
@@ -133,40 +136,44 @@ const ProductManagement = () => {
         </Card>
 
         {/* Stats Section */}
-        <Row gutter={16} className="mb-6">
-          <Col span={6}>
+        <Row gutter={[16, 16]} className="mb-4 md:mb-6">
+          <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic 
                 title="Total Products" 
                 value={totalProducts || 0} 
                 prefix={<Tag color="blue">All</Tag>}
+                className="text-xs md:text-base"
               />
             </Card>
           </Col>
-          <Col span={6}>
+          <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic 
                 title="Current Page" 
                 value={`${currentPage} / ${Math.ceil(totalProducts/pageSize)}`}
                 prefix={<Tag color="green">Page</Tag>}
+                className="text-xs md:text-base"
               />
             </Card>
           </Col>
-          <Col span={6}>
+          <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic 
                 title="Categories" 
                 value={category?.length || 0}
                 prefix={<Tag color="orange">Total</Tag>}
+                className="text-xs md:text-base"
               />
             </Card>
           </Col>
-          <Col span={6}>
+          <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic 
                 title="Per Page" 
                 value={pageSize}
                 prefix={<Tag color="purple">Showing</Tag>}
+                className="text-xs md:text-base"
               />
             </Card>
           </Col>
@@ -175,9 +182,9 @@ const ProductManagement = () => {
         {/* Products List */}
         <Card 
           title="Product Inventory"
-          className="shadow-sm mb-6"
+          className="shadow-sm mb-4 md:mb-6"
           extra={
-            <span className="text-gray-500">
+            <span className="text-gray-500 text-sm md:text-base">
               {new Date().toLocaleDateString()}
             </span>
           }
@@ -189,7 +196,7 @@ const ProductManagement = () => {
           ) : products?.length > 0 ? (
             <Row gutter={[16, 16]}>
               {products.map((product) => (
-                <Col key={product._id} xs={24} sm={12} md={8} lg={6}>
+                <Col key={product._id} xs={24} sm={12} md={8} lg={6} xl={4}>
                   <AdminProductCard 
                     product={product}
                     onDelete={() => {
@@ -207,7 +214,7 @@ const ProductManagement = () => {
           ) : (
             <Empty
               description={
-                <span className="text-gray-500">
+                <span className="text-gray-500 text-sm md:text-base">
                   No products found. Add your first product!
                 </span>
               }
@@ -215,6 +222,7 @@ const ProductManagement = () => {
               <Button 
                 type="primary" 
                 onClick={() => setIsModalOpen(true)}
+                className="mt-4"
               >
                 Add Product
               </Button>
@@ -223,7 +231,7 @@ const ProductManagement = () => {
         </Card>
 
         {/* Pagination */}
-        <div className="flex justify-center">
+        <div className="flex justify-center pb-4 md:pb-0">
           <Pagination
             current={currentPage}
             total={totalProducts}
@@ -232,6 +240,9 @@ const ProductManagement = () => {
             showSizeChanger
             showQuickJumper
             pageSizeOptions={[6, 12, 24, 48]}
+            responsive
+            size="small"
+            className="text-xs md:text-base"
           />
         </div>
 
@@ -252,9 +263,8 @@ const ProductManagement = () => {
         <DeleteProduct 
           isOpen={isDeleteModalOpen} 
           setIsOpen={setIsDeleteModalOpen}
-            
           onConfirm={() => handleDelete(selectedProductId)}
-           productId={selectedProductId}
+          productId={selectedProductId}
           isDeleting={isDeleting}
         />
       </div>
