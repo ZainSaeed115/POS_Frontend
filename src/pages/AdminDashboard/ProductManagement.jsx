@@ -34,7 +34,7 @@ const ProductManagement = () => {
   useEffect(() => {
     fetchProducts(currentPage, pageSize, selectedCategory, searchQuery);
     fetchProductCategories();
-  }, []);
+  }, [currentPage,pageSize,selectedCategory,searchQuery]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -194,23 +194,22 @@ const ProductManagement = () => {
               <Loader className="animate-spin text-blue-600" size={40} />
             </div>
           ) : products?.length > 0 ? (
-            <Row gutter={[16, 16]}>
+            <div className="space-y-4">
               {products.map((product) => (
-                <Col key={product._id} xs={24} sm={12} md={8} lg={6} xl={4}>
-                  <AdminProductCard 
-                    product={product}
-                    onDelete={() => {
-                      setSelectedProductId(product._id);
-                      setIsDeleteModalOpen(true);
-                    }}
-                    onUpdate={() => {
-                      setSelectedProductId(product._id);
-                      setIsUpdateModalOpen(true);
-                    }}
-                  />
-                </Col>
+                <AdminProductCard 
+                  key={product._id}
+                  product={product}
+                  onDelete={() => {
+                    setSelectedProductId(product._id);
+                    setIsDeleteModalOpen(true);
+                  }}
+                  onUpdate={() => {
+                    setSelectedProductId(product._id);
+                    setIsUpdateModalOpen(true);
+                  }}
+                />
               ))}
-            </Row>
+            </div>
           ) : (
             <Empty
               description={
