@@ -21,8 +21,9 @@ const Product = () => {
     totalPages: storeTotalPages,
     searchProducts,
     category, 
+    makeOffer
   } = useProductStore();
-  
+  console.log("PRODUCTS:",products)
   const { items, addToOrder, removeFromOrder, createOrder, isPlacingOrder } = useOrderStore();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -32,7 +33,7 @@ const Product = () => {
   const [showScanner, setShowScanner] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [pageSize, setPageSize] = useState(6);
-
+  console.log("Itemssss:",items);
   useEffect(() => {
     fetchProducts(currentPage, pageSize, selectedCategory, searchQuery);
   }, [currentPage, pageSize, selectedCategory, searchQuery, fetchProducts]);
@@ -58,11 +59,23 @@ const Product = () => {
     fetchProducts(currentPage, pageSize, selectedCategory);
   };
 
-  const totalSum = items.reduce((sum, product) => sum + product.salesPrice * product.quantity, 0);
 
-  const handleOrderPlacement = async () => {
-    await createOrder(items, totalSum, navigate);
-  };
+  const totalSum = items.reduce((sum, product) => sum + product.salesPrice * product.quantity, 0);
+  
+const handleOrderPlacement = async () => {
+  const orderItems = items.map(item => ({
+    product: item._id,
+    quantity: item.quantity,
+    unitPrice: item.salesPrice, // This should be the offered price
+    originalPrice: item.originalPrice || item.salesPrice,
+    isOffered: item.isOffered || false
+  }));
+  
+  console.log("Sending to backend:", orderItems);
+  
+  const totalSum = items.reduce((sum, product) => sum + product.salesPrice * product.quantity, 0);
+  await createOrder(orderItems, totalSum, navigate);
+};
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -82,6 +95,24 @@ const Product = () => {
     setCurrentPage(1);
     fetchProducts(1, pageSize);
   };
+
+  // Inside Product component
+const handleMakeOffer = async (product, offerPrice) => {
+  try {
+    const response = await makeOffer(product,offerPrice)
+
+   console.log("OFFER:",response)
+    return {
+      accepted: response.data.accepted,
+      finalPrice: response.data.finalPrice,
+      message: response.data.message,
+    };
+  } catch (err) {
+    console.error("Offer error:", err);
+    return { accepted: false, message: "Failed to make offer" };
+  }
+};
+
   return (
     <div className="min-h-screen bg-gray-50 p-2 sm:p-4 pt-16 sm:pt-20">
       {/* Header Section */}
@@ -191,6 +222,7 @@ const Product = () => {
                       key={item._id} 
                       product={item} 
                       onAdd={addToOrder} 
+                      onMakeOffer={handleMakeOffer} 
                       compact={window.innerWidth < 640}
                     />
                   ))}

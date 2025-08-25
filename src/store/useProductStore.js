@@ -233,5 +233,21 @@ fetchProducts: async (page = 1, limit = 6, category = "", search = "") => {
         toast.error(`${error.response?.data?.message || error.message || "Failed to update category"}`);
         throw error;
     }
+},
+
+makeOffer:async (productId,offerPrice)=>{
+ try {
+    const res = await axiosInstance.post(`/product/make-offer/${productId}`,{offerPrice:offerPrice});
+    console.log("OFFER1:",res)
+    if(res?.data?.success){
+      toast.success("Offered price successfully");
+
+     
+    }
+     return res;
+ } catch (error) {
+    toast.error(`${error.response?.data?.message || error.message || "Failed to set offered price"}`);
+    throw error;
+ }
 }
 }));

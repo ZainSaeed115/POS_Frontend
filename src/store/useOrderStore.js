@@ -13,27 +13,41 @@ export const useOrderStore=create((set)=>({
    isFetchingOrderDeatils:false,
    orderDetails:[],
 
-   addToOrder: (product) =>
-    set((state) => {
-     
-      const existingProduct = state.items.find((item) => item._id === product._id);
-      
-      if (existingProduct) {
-        
-        return {
-          items: state.items.map((item) =>
-            item._id === product._id
-              ? { ...item, quantity: item.quantity + 1 } 
-              : item
-          ),
-        };
-      } else {
-       
-        return {
-          items: [...state.items, { ...product, quantity: 1 }],
-        };
-      }
-    }),
+ addToOrder: (product, quantity) =>
+  set((state) => {
+    const existingProduct = state.items.find((item) => item._id === product._id);
+    
+    if (existingProduct) {
+      return {
+        items: state.items.map((item) =>
+          item._id === product._id
+            ? { 
+                ...item, 
+                quantity: item.quantity + quantity,
+                // CRITICAL: Preserve the offered price in salesPrice
+                salesPrice: product.salesPrice || item.salesPrice,
+                originalPrice: product.originalPrice || item.originalPrice || item.salesPrice,
+                isOffered: product.isOffered !== undefined ? product.isOffered : item.isOffered
+              }
+            : item
+        ),
+      };
+    } else {
+      return {
+        items: [
+          ...state.items, 
+          { 
+            ...product, 
+            quantity: quantity,
+            // CRITICAL: Ensure salesPrice contains the offered price
+            salesPrice: product.salesPrice, // This should be the offered price
+            originalPrice: product.originalPrice || product.salesPrice,
+            isOffered: product.isOffered || false
+          }
+        ],
+      };
+    }
+  }),
    removeFromOrder: (productId) =>
     set((state) => ({
       items: state.items.filter((item) => item._id !== productId),
@@ -42,16 +56,20 @@ export const useOrderStore=create((set)=>({
      navigate(path)
    },
     createOrder: async (data,sum,navigate) => {
+      console.log("OrderItemssY:",data);
       set({ isPlacingOrder: true });
       try {
-        console.log("product:",data._id,"quantity:",data.quantity)
+        console.log("product:",data,"quantity:",data.quantity)
         const orderData={
           items:data.map((item)=>({
-            product:item._id,
-            quantity:item.quantity,
-            paymentMethod:"cash"
+          product: item.product,
+           quantity: item.quantity,
+          unitPrice: item.unitPrice,
+         originalPrice: item.originalPrice || item.salesPrice,
+          isOffered: item.isOffered || false
           })),
-          totalAmount:sum
+         totalAmount: sum,
+         paymentMethod: "cash"
         }
         const res = await axiosInstance.post(`/order/create`, orderData);
         

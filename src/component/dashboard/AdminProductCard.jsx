@@ -168,6 +168,7 @@ import {
   Statistic,
   Row,
   Col,
+  Divider,
 } from 'antd';
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 
@@ -177,103 +178,97 @@ const AdminProductCard = ({ product, onUpdate, onDelete }) => {
   const profitPercentage =
     costPrice > 0 ? ((profit / costPrice) * 100).toFixed(1) : '0';
 
+  // Format currency for Pakistani users
+  const formatCurrency = (amount) => {
+    return `Rs ${parseFloat(amount).toLocaleString('en-PK', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
   return (
     <Card
       hoverable
-      className="w-full rounded-lg shadow-sm hover:shadow-md transition duration-200"
-      bodyStyle={{ padding: '12px' }}
+      className="w-full rounded-lg shadow-sm hover:shadow-md transition duration-200 border border-gray-200"
+      bodyStyle={{ padding: '16px' }}
     >
-      <div className="flex flex-col md:flex-row gap-3">
-        {/* Product Image */}
-        <div className="w-full md:w-1/6">
-          {product.image?.url ? (
-            <div className="h-28 overflow-hidden flex items-center justify-center bg-gray-50 rounded-lg">
-              <img
-                alt={product.name}
-                src={product.image.url}
-                className="object-contain h-full w-full p-1"
-              />
-            </div>
-          ) : (
-            <div className="h-28 bg-gray-100 flex items-center justify-center rounded-lg">
-              <span className="text-gray-400 text-xs">No Image</span>
-            </div>
-          )}
-        </div>
-
-        {/* Product Details */}
-        <div className="w-full md:w-4/6 flex flex-col">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <h3 className="text-base font-semibold line-clamp-1 text-gray-800">
-                {product.name}
-              </h3>
-              <Tag color={product?.category?.color || 'gray'} className="mt-1 text-xs">
+      <div className="flex flex-col">
+        {/* Header Section */}
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-gray-800 mb-1 line-clamp-2" style={{ minHeight: 'auto' }}>
+              {product.name}
+            </h3>
+            <div className="flex items-center gap-2">
+              <Tag color={product?.category?.color || 'gray'} className="text-xs font-medium">
                 {product?.category?.name || 'Uncategorized'}
               </Tag>
+              <Tag 
+                color={product.stockQuantity > 0 ? 'green' : 'red'}
+                className="text-xs font-medium"
+              >
+                {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : 'Out of stock'}
+              </Tag>
             </div>
-            <Tag 
-              color={product.stockQuantity > 0 ? 'green' : 'red'}
-              className="text-xs font-medium"
-            >
-              {product.stockQuantity} in stock
-            </Tag>
           </div>
-
-          <div className="grid grid-cols-3 gap-1 mb-2">
-            <Statistic
-              title={<span className="text-xs">Cost</span>}
-              value={costPrice.toFixed(2)}
-              prefix="₹"
-              valueStyle={{ fontSize: '14px' }}
-              className="text-center"
-            />
-            <Statistic
-              title={<span className="text-xs">Price</span>}
-              value={product.salesPrice.toFixed(2)}
-              prefix="₹"
-              valueStyle={{ fontSize: '14px' }}
-              className="text-center"
-            />
-            <Statistic
-              title={<span className="text-xs">Profit</span>}
-              value={profit}
-              prefix="₹"
-              valueStyle={{
-                fontSize: '14px',
-                color: profit > 0 ? '#389e0d' : '#cf1322'
-              }}
-              className="text-center"
-            />
-          </div>
-
-          <div className="flex justify-between items-center mt-auto">
-            <Tag color={profit > 0 ? 'green' : 'red'} className="text-xs">
-              {profitPercentage}% Margin
-            </Tag>
-            <span className="text-xs text-gray-400">
-              {new Date(product.updatedAt).toLocaleDateString()}
+          
+          <div className="text-right">
+            <span className="text-xs text-gray-500 block mb-1">
+              Last updated
+            </span>
+            <span className="text-xs text-gray-600 font-medium">
+              {new Date(product.updatedAt).toLocaleDateString('en-PK')}
             </span>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="w-full md:w-1/6 flex flex-row md:flex-col justify-end gap-1">
+        <Divider className="my-3" />
+
+        {/* Pricing Information */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="text-center p-2 bg-gray-50 rounded-md">
+            <div className="text-sm text-gray-600 font-medium mb-1">Cost Price</div>
+            <div className="text-base font-bold text-gray-800">
+              {formatCurrency(costPrice)}
+            </div>
+          </div>
+          
+          <div className="text-center p-2 bg-blue-50 rounded-md">
+            <div className="text-sm text-gray-600 font-medium mb-1">Selling Price</div>
+            <div className="text-base font-bold text-blue-700">
+              {formatCurrency(product.salesPrice)}
+            </div>
+          </div>
+          
+          <div className="text-center p-2 rounded-md" style={{ backgroundColor: profit >= 0 ? '#f6ffed' : '#fff2f0' }}>
+            <div className="text-sm text-gray-600 font-medium mb-1">Profit</div>
+            <div className={`text-base font-bold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(profit)}
+            </div>
+            <div className="text-xs mt-1" style={{ color: profit >= 0 ? '#389e0d' : '#cf1322' }}>
+              {profitPercentage}% Margin
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
           <Button
             type="primary"
+            icon={<EyeOutlined />}
+            size="small"
+            className="flex items-center justify-center text-xs bg-blue-600"
+          >
+            View
+          </Button>
+          <Button
+            type="default"
             icon={<EditOutlined />}
             onClick={() => onUpdate(product._id)}
             size="small"
-            className="flex items-center justify-center text-xs"
+            className="flex items-center justify-center text-xs border-orange-500 text-orange-500 hover:bg-orange-50"
           >
-            <span className="hidden sm:inline">Update</span>
-          </Button>
-          <Button
-            icon={<EyeOutlined />}
-            size="small"
-            className="flex items-center justify-center text-xs"
-          >
-            <span className="hidden sm:inline">View</span>
+            Update
           </Button>
           <Popconfirm
             title="Delete this product?"
@@ -281,6 +276,7 @@ const AdminProductCard = ({ product, onUpdate, onDelete }) => {
             onConfirm={() => onDelete(product._id)}
             okText="Yes"
             cancelText="No"
+            okButtonProps={{ danger: true }}
           >
             <Button
               danger
@@ -288,7 +284,7 @@ const AdminProductCard = ({ product, onUpdate, onDelete }) => {
               size="small"
               className="flex items-center justify-center text-xs"
             >
-              <span className="hidden sm:inline">Delete</span>
+              Delete
             </Button>
           </Popconfirm>
         </div>

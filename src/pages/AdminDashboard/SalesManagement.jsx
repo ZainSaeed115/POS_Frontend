@@ -47,7 +47,7 @@
 //     sales.forEach(day => {
 //       totalSales += day.totalSales;
 //       totalTransactions += day.totalOrders;
-      
+
 //       (day.ProductBreakdown || []).forEach(product => {
 //         if (!productMap[product.name]) {
 //           productMap[product.name] = { 
@@ -112,7 +112,7 @@
 //               {viewMode === 'week' ? `Week ${selectedWeek} • ${month}` : 'All Weeks'}
 //             </p>
 //           </div>
-          
+
 //           {/* View Mode Toggle */}
 //           <div className="flex flex-col sm:flex-row gap-3">
 //             <div className="flex bg-white p-1 rounded-full shadow-sm border border-gray-200">
@@ -134,7 +134,7 @@
 //                 Weekly
 //               </button>
 //             </div>
-            
+
 //             {viewMode === 'week' && (
 //               <div className="flex flex-wrap gap-2 bg-white p-1 rounded-full shadow-sm border border-gray-200">
 //                 {weeks.map((week) => (
@@ -170,7 +170,7 @@
 //                   Rs {summaryStats.totalSales.toLocaleString()}
 //                 </p>
 //               </div>
-              
+
 //               <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
 //                 <div className="flex items-center justify-between">
 //                   <h3 className="text-xs sm:text-sm text-gray-500 font-medium">Transactions</h3>
@@ -182,7 +182,7 @@
 //                   {summaryStats.totalTransactions}
 //                 </p>
 //               </div>
-              
+
 //               <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
 //                 <div className="flex items-center justify-between">
 //                   <h3 className="text-xs sm:text-sm text-gray-500 font-medium">Avg. Value</h3>
@@ -440,7 +440,7 @@ const SalesManagement = () => {
   const [viewMode, setViewMode] = useState('week');
   const [allWeeksData, setAllWeeksData] = useState([]);
   const [isLoadingAllWeeks, setIsLoadingAllWeeks] = useState(false);
-
+  console.log("S:", sales)
   useEffect(() => {
     if (viewMode === 'week') {
       getWeeklySales(selectedWeek);
@@ -469,11 +469,11 @@ const SalesManagement = () => {
     sales.forEach(day => {
       totalSales += day.totalSales;
       totalTransactions += day.totalOrders;
-      
+
       (day.ProductBreakdown || []).forEach(product => {
         if (!productMap[product.name]) {
-          productMap[product.name] = { 
-            name: product.name, 
+          productMap[product.name] = {
+            name: product.name,
             transactions: 0,
             sales: 0
           };
@@ -512,37 +512,34 @@ const SalesManagement = () => {
               {viewMode === 'week' ? `Week ${selectedWeek} • ${month}` : 'All Weeks'}
             </p>
           </div>
-          
+
           {/* View Mode Toggle */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex bg-white p-1 rounded-full shadow-sm border border-gray-200">
               <button
-                className={`px-3 py-1 text-xs sm:text-sm font-medium rounded-full transition-all flex items-center gap-1 ${
-                  viewMode === 'all' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className={`px-3 py-1 text-xs sm:text-sm font-medium rounded-full transition-all flex items-center gap-1 ${viewMode === 'all' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
                 onClick={() => setViewMode('all')}
               >
                 <Grid className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden xs:inline">All Weeks</span>
               </button>
               <button
-                className={`px-3 py-1 text-xs sm:text-sm font-medium rounded-full ${
-                  viewMode === 'week' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className={`px-3 py-1 text-xs sm:text-sm font-medium rounded-full ${viewMode === 'week' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
                 onClick={() => setViewMode('week')}
               >
                 Weekly
               </button>
             </div>
-            
+
             {viewMode === 'week' && (
               <div className="flex flex-wrap gap-2 bg-white p-1 rounded-full shadow-sm border border-gray-200">
                 {weeks.map((week) => (
                   <button
                     key={week}
-                    className={`px-3 py-1 text-xs sm:text-sm font-medium rounded-full ${
-                      selectedWeek === week ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                    className={`px-3 py-1 text-xs sm:text-sm font-medium rounded-full ${selectedWeek === week ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'
+                      }`}
                     onClick={() => setSelectedWeek(week)}
                   >
                     W{week}
@@ -570,7 +567,7 @@ const SalesManagement = () => {
                   Rs {summaryStats.totalSales.toLocaleString()}
                 </p>
               </div>
-              
+
               <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs sm:text-sm text-gray-500 font-medium">Transactions</h3>
@@ -582,7 +579,7 @@ const SalesManagement = () => {
                   {summaryStats.totalTransactions}
                 </p>
               </div>
-              
+
               <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs sm:text-sm text-gray-500 font-medium">Avg. Value</h3>
@@ -599,7 +596,7 @@ const SalesManagement = () => {
             {/* Main Content */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
               {/* Product Performance Header */}
-              <div 
+              <div
                 className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-100 cursor-pointer"
                 onClick={() => setExpandedSection(!expandedSection)}
               >
@@ -616,17 +613,15 @@ const SalesManagement = () => {
                 <div className="inline-flex rounded-md bg-gray-100 p-0.5">
                   <button
                     onClick={() => setActiveMetric('sales')}
-                    className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded transition-colors ${
-                      activeMetric === 'sales' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-600'
-                    }`}
+                    className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded transition-colors ${activeMetric === 'sales' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-600'
+                      }`}
                   >
                     Sales
                   </button>
                   <button
                     onClick={() => setActiveMetric('transactions')}
-                    className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded transition-colors ${
-                      activeMetric === 'transactions' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-600'
-                    }`}
+                    className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded transition-colors ${activeMetric === 'transactions' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-600'
+                      }`}
                   >
                     Transactions
                   </button>
@@ -741,7 +736,7 @@ const SalesManagement = () => {
                           <th className="px-3 py-2 text-left font-medium text-gray-500">Date</th>
                           <th className="px-3 py-2 text-left font-medium text-gray-500">Day</th>
                           <th className="px-3 py-2 text-left font-medium text-gray-500">Product</th>
-                          <th className="px-3 py-2 text-left font-medium text-gray-500">Transactions</th>
+                          <th className="px-3 py-2 text-left font-medium text-gray-500">Unit</th>
                           <th className="px-3 py-2 text-left font-medium text-gray-500">Sales</th>
                         </tr>
                       </thead>
@@ -784,7 +779,7 @@ const SalesManagement = () => {
                                   </>
                                 )}
                                 <td className="px-3 py-3 whitespace-nowrap text-gray-900">
-                                  {product.name}
+                                  {product.name} {product.isOffered && '(Offered)'}
                                 </td>
                                 <td className="px-3 py-3 whitespace-nowrap text-gray-500">
                                   {product.orders}
@@ -792,6 +787,7 @@ const SalesManagement = () => {
                                 <td className="px-3 py-3 whitespace-nowrap font-semibold text-emerald-600">
                                   Rs {product.revenue.toLocaleString()}
                                 </td>
+                           
                               </tr>
                             ));
                           })
