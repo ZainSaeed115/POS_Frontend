@@ -22,24 +22,26 @@ export const useProductStore = create((set) => ({
   isLoadingCategories:false,
   totalPages:[],
   
-  createNewProduct:async (productData)=>{
-    set({isAddingNewProduct:true})
-   try {
-    const res= await axiosInstance.post('/product/create',productData,{
-        headers: {
-          'Content-Type': 'multipart/form-data', // Force axios to send as multipart
-        },
-      });
-    if(res?.data)
-      toast.success("New Product added successfully");
+ createNewProduct: async (productData) => {
+  set({ isAddingNewProduct: true });
+  try {
+    const res = await axiosInstance.post('/product/create', productData, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (res?.data) {
+      toast.success(`${res.data.message || "Products added successfully"}`);
+    }
+
     await useProductStore.getState().fetchProducts();
-      set({isAddingNewProduct:false})
-   } catch (error) {
-    toast.error(error?.response?.data?.message ||"Product Creation Failed")
-    console.log(`Error in creating new Food:${error}`);
-    set({isAddingNewProduct:false})
-   }
-  },
+    set({ isAddingNewProduct: false });
+  } catch (error) {
+    toast.error(error?.response?.data?.message || "Product Creation Failed");
+    console.log(`Error in creating product: ${error}`);
+    set({ isAddingNewProduct: false });
+  }
+},
+
   
   updateProduct: async (productId, data) => {
     set({ isUpdatingProduct: true });
