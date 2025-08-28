@@ -1,5 +1,5 @@
-import { Button, Card, Empty, Pagination, Select, Statistic, Tag, Input, Space, Row, Col } from 'antd';
-import { PlusOutlined, FilterOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
+import { Button, Card, Empty, Pagination, Select, Statistic, Tag, Input, Space, Row, Col, Spin } from 'antd';
+import { PlusOutlined, FilterOutlined, SearchOutlined, ClearOutlined, DollarOutlined, ShoppingOutlined, AppstoreOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
 import AddProductModal from '../../modals/AddProductModal';
 import { useProductStore } from '../../store/useProductStore';
@@ -22,7 +22,10 @@ const ProductManagement = () => {
     fetchProductCategories, 
     category,
     deleteProduct,
-    totalProducts
+    totalProducts,
+    fetchInventoryStats,
+    inventoryStats,
+    isLoadingStats
   } = useProductStore();
   
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,7 +37,8 @@ const ProductManagement = () => {
   useEffect(() => {
     fetchProducts(currentPage, pageSize, selectedCategory, searchQuery);
     fetchProductCategories();
-  }, [currentPage,pageSize,selectedCategory,searchQuery]);
+    fetchInventoryStats();
+  }, [currentPage, pageSize, selectedCategory, searchQuery]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -55,6 +59,7 @@ const ProductManagement = () => {
     try {
       await deleteProduct(productId);
       fetchProducts(currentPage, pageSize, selectedCategory, searchQuery);
+      fetchInventoryStats(); // Refresh stats after deletion
     } finally {
       setIsDeleting(false);
       setIsDeleteModalOpen(false);
@@ -68,9 +73,18 @@ const ProductManagement = () => {
     fetchProducts(1, pageSize);
   };
 
+  // Format currency for display
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'pkr',
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   return (
     <div className="p-2 md:p-4 bg-gray-50 min-h-screen">
-      <div className="max-w-8xl mx-auto">
+      <div className="max-w-8xl mx-auto mt-5">
         {/* Header Section */}
         <Row gutter={[16, 16]} justify="space-between" align="middle" className="mb-4 md:mb-6">
           <Col xs={24} sm={12}>
@@ -87,6 +101,59 @@ const ProductManagement = () => {
             >
               Add Product
             </Button>
+          </Col>
+        </Row>
+
+        {/* Stats Section */}
+        <Row gutter={[16, 16]} className="mb-4 md:mb-6">
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="h-full shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title="Total Products" 
+                value={inventoryStats?.totalProducts || 0} 
+                prefix={<AppstoreOutlined className="text-blue-500" />}
+                valueStyle={{ color: '#3f51b5' }}
+                loading={isLoadingStats}
+                className="text-xs md:text-base"
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="h-full shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title="Total Stock" 
+                value={inventoryStats?.totalStock || 0}
+                prefix={<ShoppingOutlined className="text-orange-500" />}
+                valueStyle={{ color: '#ff9800' }}
+                loading={isLoadingStats}
+                className="text-xs md:text-base"
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="h-full shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title="Inventory Value" 
+                value={inventoryStats?.totalInventoryValue ? formatCurrency(inventoryStats.totalInventoryValue) : '₹0'}
+               
+                valueStyle={{ color: '#4caf50' }}
+                loading={isLoadingStats}
+                className="text-xs md:text-base"
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="h-full shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title="Avg. Value per Product" 
+                value={inventoryStats?.totalProducts > 0 ? 
+                  formatCurrency(inventoryStats.totalValue / inventoryStats.totalProducts) : '₹0'}
+                prefix={<Tag color="purple">Avg</Tag>}
+                valueStyle={{ color: '#9c27b0' }}
+                loading={isLoadingStats}
+                className="text-xs md:text-base"
+              />
+            </Card>
           </Col>
         </Row>
 
@@ -135,53 +202,16 @@ const ProductManagement = () => {
           </Row>
         </Card>
 
-        {/* Stats Section */}
-        <Row gutter={[16, 16]} className="mb-4 md:mb-6">
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic 
-                title="Total Products" 
-                value={totalProducts || 0} 
-                prefix={<Tag color="blue">All</Tag>}
-                className="text-xs md:text-base"
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic 
-                title="Current Page" 
-                value={`${currentPage} / ${Math.ceil(totalProducts/pageSize)}`}
-                prefix={<Tag color="green">Page</Tag>}
-                className="text-xs md:text-base"
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic 
-                title="Categories" 
-                value={category?.length || 0}
-                prefix={<Tag color="orange">Total</Tag>}
-                className="text-xs md:text-base"
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic 
-                title="Per Page" 
-                value={pageSize}
-                prefix={<Tag color="purple">Showing</Tag>}
-                className="text-xs md:text-base"
-              />
-            </Card>
-          </Col>
-        </Row>
-
         {/* Products List */}
         <Card 
-          title="Product Inventory"
+          title={
+            <div className="flex flex-col md:flex-row md:items-center">
+              <span>Product Inventory</span>
+              {isLoadingProducts && (
+                <Spin size="small" className="ml-2" />
+              )}
+            </div>
+          }
           className="shadow-sm mb-4 md:mb-6"
           extra={
             <span className="text-gray-500 text-sm md:text-base">
@@ -249,14 +279,20 @@ const ProductManagement = () => {
         <AddProductModal 
           isOpen={isModalOpen} 
           setIsOpen={setIsModalOpen}
-          onSuccess={() => fetchProducts(currentPage, pageSize)}
+          onSuccess={() => {
+            fetchProducts(currentPage, pageSize);
+            fetchInventoryStats(); // Refresh stats after adding product
+          }}
         />
         
         <UpdateProductModal 
           isOpen={isUpdateModalOpen} 
           setIsOpen={setIsUpdateModalOpen}
           productId={selectedProductId}
-          onSuccess={() => fetchProducts(currentPage, pageSize)}
+          onSuccess={() => {
+            fetchProducts(currentPage, pageSize);
+            fetchInventoryStats(); // Refresh stats after updating product
+          }}
         />
         
         <DeleteProduct 
