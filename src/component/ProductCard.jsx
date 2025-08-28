@@ -37,160 +37,214 @@
 
 
 import React, { useState } from "react";
+import { Tag, Tooltip, Progress } from "antd";
+import { InfoCircleOutlined, DollarOutlined } from "@ant-design/icons";
 
 const ProductCard = ({ product, onAdd, onMakeOffer }) => {
   const [quantity, setQuantity] = useState(1);
   const [offerOpen, setOfferOpen] = useState(false);
   const [offer, setOffer] = useState("");
   const [offerLoading, setOfferLoading] = useState(false);
-  const [offerResult, setOfferResult] = useState(null); // { status: 'accepted'|'rejected', price?: number, message: string }
+  const [offerResult, setOfferResult] = useState(null);
 
   const inStock = (product?.stockQuantity ?? 0) > 0;
-  console.log(product)
+  const maxDiscount = product.salesPrice * 0.3; // Maximum 30% discount
+  const minPrice = product.salesPrice - maxDiscount;
+  
+  // Fix for the array length error
+  const stockQuantity = Math.max(0, product?.countInStock || 0);
+  const quantityOptions = stockQuantity > 0 ? 
+    [...Array(Math.min(10, stockQuantity)).keys()].map(x => x + 1) : [1];
 
- const handleOfferSubmit = async () => {
-  const num = Number(offer);
+  const calculateDiscountPercentage = (offerPrice) => {
+    return Math.round(((product.salesPrice - offerPrice) / product.salesPrice) * 100);
+  };
 
-  if (!offer || Number.isNaN(num) || num <= 0) {
-    setOfferResult({ status: "rejected", message: "Enter a valid positive offer." });
-    return;
-  }
-  if (num >= product.salesPrice) {
-    setOfferResult({
-      status: "rejected",
-      message: "Offer should be less than listed price.",
-    });
-    return;
-  }
+  const handleOfferSubmit = async () => {
+    const num = Number(offer);
 
-  try {
-    setOfferLoading(true);
-    setOfferResult(null);
-
-    console.log("Making offer for product:", product._id, "Offer price:", num, "Original price:", product.salesPrice);
-
-    // call backend via parent
-    const resp = await onMakeOffer?.(product._id, num);
-
-    console.log("Offer response:", resp);
-
-    if (resp?.accepted) {
-      const finalPrice = resp.finalPrice ?? num;
-      
-      setOfferResult({
-        status: "accepted",
-        price: finalPrice,
-        message: resp?.message || "Offer accepted.",
-      });
-
-      console.log("Offer ACCEPTED - Final price:", finalPrice, "Original price:", product.salesPrice);
-      
-      // Update cart/order with the offered price - THIS IS CRITICAL
-      onAdd({ 
-        ...product, 
-        _id: product._id, // Ensure product ID is included
-        salesPrice: finalPrice, // This MUST be the offered price
-        originalPrice: product.salesPrice, // Store original price for reference
-        isOffered: true // Flag to identify offered items
-      }, quantity);
-
-      console.log("Product added to cart with offered price:", finalPrice);
-      
-    } else {
+    if (!offer || Number.isNaN(num) || num <= 0) {
+      setOfferResult({ status: "rejected", message: "Enter a valid positive offer." });
+      return;
+    }
+    
+    if (num >= product.salesPrice) {
       setOfferResult({
         status: "rejected",
-        message: resp?.message || "Offer rejected.",
+        message: "Offer should be less than listed price.",
       });
-      console.log("Offer REJECTED:", resp?.message);
+      return;
     }
-  } catch (err) {
-    console.error("Offer error:", err);
-    setOfferResult({
-      status: "rejected",
-      message: "Something went wrong while sending your offer.",
-    });
-  } finally {
-    setOfferLoading(false);
-  }
-};
+    
+    if (num < minPrice) {
+      setOfferResult({
+        status: "rejected",
+        message: `Offer is too low. Try Rs. ${minPrice.toFixed(2)} or higher.`,
+      });
+      return;
+    }
+
+    try {
+      setOfferLoading(true);
+      setOfferResult(null);
+
+      const resp = await onMakeOffer?.(product._id, num);
+
+      if (resp?.accepted) {
+        const finalPrice = resp.finalPrice ?? num;
+        const discountPercent = calculateDiscountPercentage(finalPrice);
+        
+        setOfferResult({
+          status: "accepted",
+          price: finalPrice,
+          message: `Offer accepted! You saved ${discountPercent}%.`,
+        });
+
+        onAdd({ 
+          ...product, 
+          _id: product._id,
+          salesPrice: finalPrice,
+          originalPrice: product.salesPrice,
+          isOffered: true
+        }, quantity);
+      } else {
+        setOfferResult({
+          status: "rejected",
+          message: resp?.message || "Offer rejected. Try a slightly higher amount.",
+        });
+      }
+    } catch (err) {
+      console.error("Offer error:", err);
+      setOfferResult({
+        status: "rejected",
+        message: "Something went wrong while sending your offer.",
+      });
+    } finally {
+      setOfferLoading(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-5 border border-gray-300 rounded-2xl bg-white shadow-sm hover:shadow-lg transition-all">
-      {/* Info */}
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-all">
+      {/* Product Info */}
       <div className="w-full sm:w-2/3">
-        <h3 className="text-xl font-semibold text-gray-900">{product.name}</h3>
-        <p className="mt-1 text-gray-700">
-          Price:{" "}
-          {offerResult?.status === "accepted" ? (
-            <>
-              <span className="line-through text-gray-400 mr-1">{product.salesPrice}</span>
-              <span className="font-medium text-green-600">Rs {offerResult.price}</span>
-            </>
-          ) : (
-            <span className="font-medium">Rs {product.salesPrice}</span>
+        <div className="flex justify-between items-start">
+          <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
+          {product.stockQuantity < 5 && inStock && (
+            <Tag color="orange" className="text-xs">Low Stock</Tag>
           )}
-        </p>
+        </div>
+        
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-gray-700">
+            Price:{" "}
+            {offerResult?.status === "accepted" ? (
+              <>
+                <span className="line-through text-gray-400 mr-1">Rs {product.salesPrice}</span>
+                <span className="font-medium text-green-600">Rs {offerResult.price}</span>
+              </>
+            ) : (
+              <span className="font-medium">Rs {product.salesPrice}</span>
+            )}
+          </p>
+          
+          <Tooltip title="You can bargain for up to 30% off">
+            <InfoCircleOutlined className="text-blue-400 cursor-help" />
+          </Tooltip>
+        </div>
+
+        {/* Discount Range Visualizer */}
+        {!offerResult?.status === "accepted" && (
+          <div className="mt-3">
+            <div className="flex justify-between text-xs text-gray-500 mb-1">
+              <span>Min: Rs {minPrice.toFixed(2)}</span>
+              <span>Max: Rs {product.salesPrice}</span>
+            </div>
+            <Progress 
+              percent={offer ? Math.min(100, ((product.salesPrice - Number(offer)) / maxDiscount) * 100) : 0} 
+              showInfo={false}
+              strokeColor="#52c41a"
+              size="small"
+            />
+          </div>
+        )}
 
         {inStock ? (
-          <div className="mt-4 flex items-center gap-3">
-            <label className="text-sm text-gray-600">Quantity</label>
+          <div className="mt-4 flex items-center gap-3 flex-wrap">
+            <label className="text-sm text-gray-600">Quantity:</label>
             <select
               value={quantity}
               onChange={(e) => setQuantity(parseInt(e.target.value))}
-              className="p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
             >
-              {[...Array(product.countInStock).keys()].map((x) => (
-                <option key={x + 1} value={x + 1}>
-                  {x + 1}
+              {quantityOptions.map((value) => (
+                <option key={value} value={value}>
+                  {value}
                 </option>
               ))}
             </select>
+            
+            <button
+              onClick={() => onAdd(product, quantity)}
+              className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition"
+            >
+              Add to Cart
+            </button>
           </div>
         ) : (
           <p className="mt-3 text-sm font-medium text-red-600">Out of stock</p>
         )}
 
-        {/* Bargain */}
-        <div className="mt-4">
+        {/* Bargain Section */}
+        <div className="mt-3">
           <button
             type="button"
             onClick={() => setOfferOpen((s) => !s)}
-            className="text-sm underline underline-offset-4 text-gray-700 hover:text-gray-900"
+            className="flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium"
           >
+            <DollarOutlined />
             {offerOpen ? "Hide offer" : "Make an offer"}
           </button>
 
           {offerOpen && (
-            <div className="mt-3 space-y-2">
-              <div className="flex items-center gap-3">
+            <div className="mt-3 space-y-2 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-2 flex-wrap">
                 <input
                   type="number"
-                  min="1"
+                  min={minPrice}
+                  max={product.salesPrice - 0.01}
                   step="1"
-                  placeholder="Enter your offer (Rs)"
+                  placeholder={`Enter offer (Rs ${minPrice.toFixed(2)} - ${product.salesPrice})`}
                   value={offer}
                   onChange={(e) => setOffer(e.target.value)}
-                  className="w-48 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                 />
                 <button
                   type="button"
                   onClick={handleOfferSubmit}
                   disabled={offerLoading || !onMakeOffer}
-                  className={`px-4 py-2 rounded-lg text-white transition ${
+                  className={`px-3 py-2 rounded-md text-white transition text-sm ${
                     offerLoading || !onMakeOffer
                       ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-amber-600 hover:bg-amber-700"
+                      : "bg-amber-500 hover:bg-amber-600"
                   }`}
                 >
-                  {offerLoading ? "Sending..." : "Send Offer"}
+                  {offerLoading ? "Sending..." : "Offer"}
                 </button>
               </div>
 
+              {offer && !offerLoading && (
+                <p className="text-xs text-gray-500">
+                  Your offer is {calculateDiscountPercentage(Number(offer))}% off
+                </p>
+              )}
+
               {offerResult && (
-                <div
-                  className={`text-sm ${
-                    offerResult.status === "accepted" ? "text-green-700" : "text-red-600"
-                  }`}
-                >
+                <div className={`text-sm p-2 rounded-md ${
+                  offerResult.status === "accepted" 
+                    ? "bg-green-100 text-green-700" 
+                    : "bg-red-100 text-red-600"
+                }`}>
                   {offerResult.message}
                 </div>
               )}
@@ -199,22 +253,18 @@ const ProductCard = ({ product, onAdd, onMakeOffer }) => {
         </div>
       </div>
 
-      {/* Add to Cart */}
-      <div className="w-full sm:w-1/3 flex justify-end gap-3">
-        <button
-          onClick={() => onAdd(product, quantity)}
-          disabled={!inStock}
-          className={`px-6 py-2 rounded-lg font-medium text-white transition ${
-            inStock ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"
-          }`}
-        >
-          {inStock ? "Add to Cart" : "Out of stock"}
-        </button>
-      </div>
+      {/* Product Image */}
+      {product.image?.url && (
+        <div className="w-full sm:w-1/4 flex justify-center">
+          <img
+            src={product.image.url}
+            alt={product.name}
+            className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg"
+          />
+        </div>
+      )}
     </div>
   );
 };
 
 export default ProductCard;
-
-
