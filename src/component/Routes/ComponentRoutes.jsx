@@ -11,6 +11,8 @@ import CategoryManagement from '../../pages/AdminDashboard/CategoryManagement'
 import ForgotPassword from '../../pages/ForgotPassword'
 import VerifyResetCode from '../../pages/VerifyResetCode'
 import ResetPassword from '../../pages/ResetPassword'
+import SupplierManagement from '../../pages/AdminDashboard/SupplierManagement'
+import SupplierProfile from '../../pages/AdminDashboard/SupplierProfile'
 const Home=lazy(()=>import('../../pages/Home'))
 const OrderDeatails =lazy(()=>import('../../pages/OrderDeatails'))
 const Register=lazy(()=>import('../../pages/Register'))
@@ -43,6 +45,8 @@ const ComponentRoutes = () => {
             <Route path='/product' element={<PrivateRoutes><ProductManagement/></PrivateRoutes>}/>
            <Route path='/orders' element={<PrivateRoutes><OrderManagement/></PrivateRoutes>}/>
            <Route path='/sales' element={<PrivateRoutes><SalesManagement/></PrivateRoutes>}/>
+     
+           <Route path='/supplier' element={<PrivateRoutes><SupplierManagement/></PrivateRoutes>}/>
            <Route path='/category' element={<PrivateRoutes><CategoryManagement/></PrivateRoutes>}/>
            <Route path='/forgot-password' element={<PublicRoutes><ForgotPassword/></PublicRoutes>}/>
            <Route path='/verify-code' element={<PublicRoutes><VerifyResetCode/></PublicRoutes>}/>

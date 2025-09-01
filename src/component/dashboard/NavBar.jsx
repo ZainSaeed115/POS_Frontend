@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, ShoppingBasket, TagsIcon, TrendingUp, Menu, X, LogOut } from 'lucide-react';
+import { Home, ShoppingBasket, TagsIcon, TrendingUp, Menu, X, LogOut,User } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 
@@ -92,6 +92,20 @@ const Navbar = () => {
                   >
                     <TagsIcon className="mr-2 h-4 w-4" />
                     Category
+                  </Link>
+
+
+
+                     <Link
+                    to="/supplier"
+                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200 ${
+                      isActive('/supplier')
+                        ? 'border-indigo-500 text-gray-900 font-semibold'
+                        : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800'
+                    }`}
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    Supplier
                   </Link>
                   
                   <Link
