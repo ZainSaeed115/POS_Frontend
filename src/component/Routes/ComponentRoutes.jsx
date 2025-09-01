@@ -12,7 +12,7 @@ import ForgotPassword from '../../pages/ForgotPassword'
 import VerifyResetCode from '../../pages/VerifyResetCode'
 import ResetPassword from '../../pages/ResetPassword'
 import SupplierManagement from '../../pages/AdminDashboard/SupplierManagement'
-import SupplierProfile from '../../pages/AdminDashboard/SupplierProfile'
+
 const Home=lazy(()=>import('../../pages/Home'))
 const OrderDeatails =lazy(()=>import('../../pages/OrderDeatails'))
 const Register=lazy(()=>import('../../pages/Register'))
