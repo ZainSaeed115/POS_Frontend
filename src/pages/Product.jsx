@@ -10,6 +10,7 @@ import BarCodeScanner from "../component/BarCodeScanner";
 import { toast } from "react-toastify";
 import { Card, Col, Row, Input, Select, Button, Modal, Progress, Tag } from "antd";
 import { ClearOutlined, FilterOutlined, SearchOutlined, QuestionCircleOutlined } from "@ant-design/icons";
+import { useSupplierStore } from "../store/useSupplier";
 
 const { Search } = Input;
 const Product = () => {
@@ -25,6 +26,11 @@ const Product = () => {
   } = useProductStore();
   
   const { items, addToOrder, removeFromOrder, createOrder, isPlacingOrder } = useOrderStore();
+   const {
+      suppliers,
+      fetchSuppliers,
+      isLoadingSuppliers
+    } = useSupplierStore();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,12 +38,13 @@ const Product = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [showScanner, setShowScanner] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSupplier, setSelectedSupplier] = useState("");
   const [pageSize, setPageSize] = useState(6);
   const [bargainHelpVisible, setBargainHelpVisible] = useState(false);
 
   useEffect(() => {
-    fetchProducts(currentPage, pageSize, selectedCategory, searchQuery);
-  }, [currentPage, pageSize, selectedCategory, searchQuery, fetchProducts]);
+    fetchProducts(currentPage, pageSize, selectedCategory, searchQuery,selectedSupplier);
+  }, [currentPage, pageSize, selectedCategory, searchQuery, fetchProducts,selectedSupplier]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -183,6 +190,22 @@ const Product = () => {
                   </Select>
                 </Col>
                 
+                   <Col xs={24} sm={12} md={8}>
+                  <Select
+                    placeholder="Filter by supplier"
+                    className="w-full"
+                    value={selectedCategory || undefined}
+                    onChange={(value) => setSelectedSupplier(value)}
+                    allowClear
+                    suffixIcon={<FilterOutlined />}
+                  >
+                    {suppliers?.map((sup) => (
+                      <Select.Option key={sup._id} value={sup._id}>
+                        {sup.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Col>
                 <Col xs={24} md={8}>
                   <Button 
                     onClick={handleClearFilters}
