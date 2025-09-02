@@ -93,33 +93,35 @@ export const useProductStore = create((set) => ({
   //   }
   // },
 
-  fetchProducts: async (page = 1, limit = 6, category = "", search = "") => {
-    set({ isLoadingProducts: true });
-    try {
-      let url = `/product/get?page=${page}&limit=${limit}`;
-      if (category) url += `&category=${category}`;
-      if (search) url += `&search=${search}`;
+  // In your useProductStore
+fetchProducts: async (page = 1, limit = 6, category = "", search = "", supplier = "", stockStatus = "") => {
+  set({ isLoadingProducts: true });
+  try {
+    let url = `/product/get?page=${page}&limit=${limit}`;
+    if (category) url += `&category=${category}`;
+    if (search) url += `&search=${search}`;
+    if (supplier) url += `&supplier=${supplier}`;
+    if (stockStatus) url += `&stockStatus=${stockStatus}`;
 
-      const res = await axiosInstance.get(url);
+    const res = await axiosInstance.get(url);
 
-
-      set({
-        productsResponse: res.data,
-        products: res.data.products,
-        currentPage: res.data.currentPage,
-        totalPages: res.data.totalPages,
-        totalProducts: res.data.totalProducts,
-        isLoadingProducts: false
-      });
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      set({
-        productsResponse: null,
-        products: [],
-        isLoadingProducts: false
-      });
-    }
-  },
+    set({
+      productsResponse: res.data,
+      products: res.data.products,
+      currentPage: res.data.currentPage,
+      totalPages: res.data.totalPages,
+      totalProducts: res.data.totalProducts,
+      isLoadingProducts: false
+    });
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    set({
+      productsResponse: null,
+      products: [],
+      isLoadingProducts: false
+    });
+  }
+},
   // fetching single product
   fetchProduct: async (productId) => {
     set({ isLoadingProduct: true });

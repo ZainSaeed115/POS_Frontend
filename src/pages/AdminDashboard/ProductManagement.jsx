@@ -3,6 +3,7 @@ import { PlusOutlined, FilterOutlined, SearchOutlined, ClearOutlined, DollarOutl
 import { useEffect, useState } from 'react';
 import AddProductModal from '../../modals/AddProductModal';
 import { useProductStore } from '../../store/useProductStore';
+import { useSupplierStore } from '../../store/useSupplier';
 import { Loader } from 'lucide-react';
 import AdminProductCard from '../../component/dashboard/AdminProductCard';
 import DeleteProduct from '../../modals/DeleteProduct';
@@ -27,39 +28,48 @@ const ProductManagement = () => {
     inventoryStats,
     isLoadingStats
   } = useProductStore();
+  const {
+    suppliers,
+    fetchSuppliers,
+    isLoadingSuppliers
+  } = useSupplierStore();
   
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSupplier, setSelectedSupplier] = useState("");
+  const [stockStatus, setStockStatus] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
  
   useEffect(() => {
-    fetchProducts(currentPage, pageSize, selectedCategory, searchQuery);
+    fetchProducts(currentPage, pageSize, selectedCategory, searchQuery, selectedSupplier, stockStatus);
     fetchProductCategories();
     fetchInventoryStats();
-  }, [currentPage, pageSize, selectedCategory, searchQuery]);
+    fetchSuppliers();
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchProducts(1, pageSize, selectedCategory, searchQuery);
+      setCurrentPage(1);
+      fetchProducts(1, pageSize, selectedCategory, searchQuery, selectedSupplier, stockStatus);
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, selectedSupplier, stockStatus]);
 
   const handlePageChange = (page, size) => {
     setCurrentPage(page);
     setPageSize(size);
-    fetchProducts(page, size, selectedCategory, searchQuery);
+    fetchProducts(page, size, selectedCategory, searchQuery, selectedSupplier, stockStatus);
   };
 
   const handleDelete = async (productId) => {
     setIsDeleting(true);
     try {
       await deleteProduct(productId);
-      fetchProducts(currentPage, pageSize, selectedCategory, searchQuery);
-      fetchInventoryStats(); // Refresh stats after deletion
+      fetchProducts(currentPage, pageSize, selectedCategory, searchQuery, selectedSupplier, stockStatus);
+      fetchInventoryStats();
     } finally {
       setIsDeleting(false);
       setIsDeleteModalOpen(false);
@@ -69,23 +79,23 @@ const ProductManagement = () => {
   const handleClearFilters = () => {
     setSearchQuery("");
     setSelectedCategory("");
+    setSelectedSupplier("");
+    setStockStatus("");
     setCurrentPage(1);
-    fetchProducts(1, pageSize);
+    fetchProducts(1, pageSize, "", "", "", "");
   };
 
-  // Format currency for display
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
+    return new Intl.NumberFormat('en-PK', {
       style: 'currency',
-      currency: 'pkr',
+      currency: 'PKR',
       maximumFractionDigits: 0
     }).format(amount);
   };
 
   return (
     <div className="p-2 md:p-4 bg-gray-50 min-h-screen">
-      <div className="max-w-8xl mx-auto mt-5">
-        {/* Header Section */}
+      <div className="max-w-7xl mx-auto mt-5">
         <Row gutter={[16, 16]} justify="space-between" align="middle" className="mb-4 md:mb-6">
           <Col xs={24} sm={12}>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">Product Management</h1>
@@ -104,7 +114,6 @@ const ProductManagement = () => {
           </Col>
         </Row>
 
-        {/* Stats Section */}
         <Row gutter={[16, 16]} className="mb-4 md:mb-6">
           <Col xs={24} sm={12} lg={6}>
             <Card className="h-full shadow-sm hover:shadow-md transition-shadow">
@@ -134,8 +143,7 @@ const ProductManagement = () => {
             <Card className="h-full shadow-sm hover:shadow-md transition-shadow">
               <Statistic 
                 title="Inventory Value" 
-                value={inventoryStats?.totalInventoryValue ? formatCurrency(inventoryStats.totalInventoryValue) : '₹0'}
-               
+                value={inventoryStats?.totalInventoryValue ? formatCurrency(inventoryStats.totalInventoryValue) : 'PKR 0'}
                 valueStyle={{ color: '#4caf50' }}
                 loading={isLoadingStats}
                 className="text-xs md:text-base"
@@ -147,7 +155,7 @@ const ProductManagement = () => {
               <Statistic 
                 title="Avg. Value per Product" 
                 value={inventoryStats?.totalProducts > 0 ? 
-                  formatCurrency(inventoryStats.totalValue / inventoryStats.totalProducts) : '₹0'}
+                  formatCurrency(inventoryStats.totalInventoryValue / inventoryStats.totalProducts) : 'PKR 0'}
                 prefix={<Tag color="purple">Avg</Tag>}
                 valueStyle={{ color: '#9c27b0' }}
                 loading={isLoadingStats}
@@ -155,12 +163,35 @@ const ProductManagement = () => {
               />
             </Card>
           </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="h-full shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title="Low Stock" 
+                value={inventoryStats?.lowStock || 0}
+                prefix={<ShoppingOutlined className="text-yellow-500" />}
+                valueStyle={{ color: '#d4af37' }}
+                loading={isLoadingStats}
+                className="text-xs md:text-base"
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="h-full shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title="Out of Stock" 
+                value={inventoryStats?.outOfStock || 0}
+                prefix={<ShoppingOutlined className="text-red-500" />}
+                valueStyle={{ color: '#ef4444' }}
+                loading={isLoadingStats}
+                className="text-xs md:text-base"
+              />
+            </Card>
+          </Col>
         </Row>
 
-        {/* Filters Section */}
         <Card className="mb-4 md:mb-6 shadow-sm">
           <Row gutter={[16, 16]} align="middle">
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
               <Search
                 placeholder="Search by name or barcode"
                 prefix={<SearchOutlined />}
@@ -171,8 +202,7 @@ const ProductManagement = () => {
                 className="w-full"
               />
             </Col>
-            
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
               <Select
                 placeholder="Filter by category"
                 className="w-full"
@@ -188,12 +218,42 @@ const ProductManagement = () => {
                 ))}
               </Select>
             </Col>
-            
-            <Col xs={24} md={8} className="text-center md:text-left">
+            <Col xs={24} sm={12} md={6}>
+              <Select
+                placeholder="Filter by supplier"
+                className="w-full"
+                value={selectedSupplier || undefined}
+                onChange={(value) => setSelectedSupplier(value)}
+                allowClear
+                suffixIcon={<FilterOutlined />}
+                loading={isLoadingSuppliers}
+              >
+                {suppliers?.map((sup) => (
+                  <Select.Option key={sup._id} value={sup._id}>
+                    {sup.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Select
+                placeholder="Filter by stock status"
+                className="w-full"
+                value={stockStatus || undefined}
+                onChange={(value) => setStockStatus(value)}
+                allowClear
+                suffixIcon={<FilterOutlined />}
+              >
+                <Select.Option value="inStock">In Stock</Select.Option>
+                <Select.Option value="lowStock">Low Stock</Select.Option>
+                <Select.Option value="outOfStock">Out of Stock</Select.Option>
+              </Select>
+            </Col>
+            <Col xs={24} md={6} className="text-center md:text-left">
               <Button 
                 onClick={handleClearFilters}
                 icon={<ClearOutlined />}
-                disabled={!searchQuery && !selectedCategory}
+                disabled={!searchQuery && !selectedCategory && !selectedSupplier && !stockStatus}
                 className="w-full md:w-auto"
               >
                 Clear Filters
@@ -202,7 +262,6 @@ const ProductManagement = () => {
           </Row>
         </Card>
 
-        {/* Products List */}
         <Card 
           title={
             <div className="flex flex-col md:flex-row md:items-center">
@@ -259,7 +318,6 @@ const ProductManagement = () => {
           )}
         </Card>
 
-        {/* Pagination */}
         <div className="flex justify-center pb-4 md:pb-0">
           <Pagination
             current={currentPage}
@@ -275,13 +333,12 @@ const ProductManagement = () => {
           />
         </div>
 
-        {/* Modals */}
         <AddProductModal 
           isOpen={isModalOpen} 
           setIsOpen={setIsModalOpen}
           onSuccess={() => {
-            fetchProducts(currentPage, pageSize);
-            fetchInventoryStats(); // Refresh stats after adding product
+            fetchProducts(currentPage, pageSize, selectedCategory, searchQuery, selectedSupplier, stockStatus);
+            fetchInventoryStats();
           }}
         />
         
@@ -290,8 +347,8 @@ const ProductManagement = () => {
           setIsOpen={setIsUpdateModalOpen}
           productId={selectedProductId}
           onSuccess={() => {
-            fetchProducts(currentPage, pageSize);
-            fetchInventoryStats(); // Refresh stats after updating product
+            fetchProducts(currentPage, pageSize, selectedCategory, searchQuery, selectedSupplier, stockStatus);
+            fetchInventoryStats();
           }}
         />
         

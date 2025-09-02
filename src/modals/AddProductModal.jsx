@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Form, Input, Button, Select, message, Row, Col, Card } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { useProductStore } from "../store/useProductStore";
+import { useSupplierStore } from "../store/useSupplier";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -9,10 +10,16 @@ const { Option } = Select;
 const AddProductModal = ({ isOpen, setIsOpen }) => {
   const [form] = Form.useForm();
   const { category, fetchProductCategories, createNewProduct, isAddingNewProduct } = useProductStore();
+  const {
+    suppliers,
+    fetchSuppliers,
+    isLoadingSuppliers
+  } = useSupplierStore();
   const [productCount, setProductCount] = useState(1);
 
   useEffect(() => {
     fetchProductCategories();
+    fetchSuppliers(); // Add this to fetch suppliers
   }, []);
 
   const handleSubmit = async (values) => {
@@ -153,6 +160,23 @@ const AddProductModal = ({ isOpen, setIsOpen }) => {
                           {category.map((cat) => (
                             <Option key={cat._id} value={cat._id}>
                               {cat.name}
+                            </Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+
+                    {/* FIXED: Supplier field moved inside Form.List */}
+                    <Col xs={24} md={12}>
+                      <Form.Item
+                        {...restField}
+                        label="Supplier"
+                        name={[name, "supplier"]}
+                      >
+                        <Select placeholder="Select supplier" loading={isLoadingSuppliers}>
+                          {suppliers.map((sup) => (
+                            <Option key={sup._id} value={sup._id}>
+                              {sup.name}
                             </Option>
                           ))}
                         </Select>

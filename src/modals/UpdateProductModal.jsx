@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Form, Input, Button, Select, message, Row, Col, Card } from "antd";
 import { useProductStore } from "../store/useProductStore";
+import { useSupplierStore } from "../store/useSupplier";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -15,7 +16,11 @@ const UpdateProductModal = ({ isOpen, setIsOpen, productId }) => {
     updateProduct,
     fetchProduct,
   } = useProductStore();
-
+   const {
+     suppliers,
+     fetchSuppliers,
+     isLoadingSuppliers
+   } = useSupplierStore();
   const [profit, setProfit] = useState(0);
 
   useEffect(() => {
@@ -151,21 +156,29 @@ const UpdateProductModal = ({ isOpen, setIsOpen, productId }) => {
               </Form.Item>
             </Col>
 
+               <Col xs={24} md={12}>
+              <Form.Item
+                label="Supplier"
+                name="supplier"
+                // rules={[{ required: true, message: "Select category" }]}
+              >
+                <Select placeholder="Select supplier">
+                  {suppliers.map((sup) => (
+                    <Option key={sup._id} value={sup._id}>
+                      {sup.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+
             <Col xs={24} md={12}>
               <Form.Item label="Barcode" name="barcode">
                 <Input placeholder="Enter barcode (optional)" />
               </Form.Item>
             </Col>
 
-            <Col xs={24}>
-              <Form.Item
-                label="Description"
-                name="description"
-                rules={[{ required: true, message: "Enter description" }]}
-              >
-                <TextArea rows={2} placeholder="Enter description" />
-              </Form.Item>
-            </Col>
+         
           </Row>
         </Card>
 
